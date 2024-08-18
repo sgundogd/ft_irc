@@ -41,6 +41,7 @@ class Server
         std::vector<Channel> channels;
         std::string hostname;
         std::string date;
+        std::string passwd;
 
     public:
         Server();
@@ -54,7 +55,7 @@ class Server
         bool    isAlNumStr(std::string str);
         void    handle_name(std::vector<std::string> &tokens);
 
-        void	pass(std::vector<std::string> &tokens);
+        void	pass(std::vector<std::string> &tokens, int fd);
 		void	nick(std::vector<std::string> &tokens, int fd);
 		void	user(std::vector<std::string> &tokens, int fd);
 		void	privmsg(std::vector<std::string> &tokens);

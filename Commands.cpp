@@ -1,5 +1,23 @@
 #include "Server.hpp"
 
+void Server::pass(std::vector<std::string> &tokens, int fd)
+{
+	std::vector<std::string>::iterator tokens_it = tokens.begin();
+	std::vector<Client>::iterator client_it = findClient(fd);
+
+	if(tokens.size() == 2)
+	{
+		if (client_it->is_auth == true)
+			return;
+		if(*(tokens_it + 1) != this->passwd)
+			sendReply(PASS_ERR(), fd);
+		else
+			client_it->is_auth = true;
+	}
+	else
+		sendReply("Command form is: PASS <password>", fd);
+}
+
 void Server::nick(std::vector<std::string> &tokens, int fd)
 {
 	std::vector<std::string>::iterator tokens_it = tokens.begin();
@@ -72,4 +90,12 @@ void	Server::user(std::vector<std::string> &tokens, int fd)
 	{
 		sendReply("Command form is: USER <username> <mode> <unused> :realname",fd);
 	}
+}
+
+void Server::join(std::vector<std::string> &tokens)
+{
+	//channel var mı diye bak
+	//yoksa oluştur varsa clientı ekle
+	//passwordu var mı diye bak
+	//şifre kontrollerini yap
 }

@@ -17,11 +17,11 @@ class Client
         Client(int c_fd, int c_id);
         ~Client();
 
+        bool is_auth;
+        
         void setNick(std::string c_nick);
         void setUname(std::string c_uname);
         void setRname(std::string c_rname);
-        bool isempty_u();
-        bool isempty_n();
         std::string getNick(void) const;
         std::string getUname(void) const;
         std::string getRname(void) const;

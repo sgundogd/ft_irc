@@ -5,6 +5,10 @@ Server::Server() {}
 int Server::init(int port, std::string pass)
 {
     opt = 1;
+    char hostname[1024];
+    gethostname(hostname,sizeof(hostname));
+    this->hostname = hostname;
+    this->passwd = pass;
     if ((serverfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
         return (-1);
     if (setsockopt(serverfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) != 0)
@@ -18,7 +22,6 @@ int Server::init(int port, std::string pass)
     (servaddr).sin_family = AF_INET;
     if ((bind(serverfd, (const sockaddr *)(&servaddr), sizeof(servaddr))) == -1)
         return (-1);
-    len = sizeof(servaddr);
     return (0);
 }
 
@@ -31,9 +34,8 @@ int Server::Start()
     if (listen(serverfd, QEUE) == -1)
         return (-1);
     memset(buff, 0, sizeof(buff));
-    char hostname[1024];
-    gethostname(hostname,sizeof(hostname));
-    this->hostname = hostname;
+
+    len = sizeof(servaddr);
 
     while (1)
     {
@@ -118,7 +120,7 @@ void Server::parse_cl(int fd)
 	
 		std::vector<std::string>::iterator tokens_it = tokens.begin();
 		if (*tokens_it == "PASS")
-			pass(tokens);
+			pass(tokens, fd);
 		else if (*tokens_it == "JOIN")
 			join(tokens);
 		else if (*tokens_it == "NICK")
