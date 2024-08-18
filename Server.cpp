@@ -9,6 +9,7 @@ int Server::init(int port, std::string pass)
     gethostname(hostname,sizeof(hostname));
     this->hostname = hostname;
     this->passwd = pass;
+    c_id = 0;
     if ((serverfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
         return (-1);
     if (setsockopt(serverfd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) != 0)
@@ -27,16 +28,12 @@ int Server::init(int port, std::string pass)
 
 int Server::Start()
 {
-
-    c_id = 0;
     FD_ZERO(&current);
     FD_SET(serverfd, &current);
     if (listen(serverfd, QEUE) == -1)
         return (-1);
     memset(buff, 0, sizeof(buff));
-
     len = sizeof(servaddr);
-
     while (1)
     {
         write_set = read_set = current;
@@ -80,7 +77,7 @@ int Server::Start()
                     {
                         buff[ret-1] = '\0';
                         parse_cl(fd);
-                        // buraya cemal ekstra koşullar eklemiş bir tek /n var gibi vb onlara bal
+                        // buraya cemal ekstra koşullar eklemiş bir tek /n var gibi vb onlara bak
                         sendToClis(fd);
                     }
                     memset(buff, 0, sizeof(buff));
@@ -95,6 +92,7 @@ void Server::parse_cl(int fd)
     std::istringstream iss(buff);
     std::string line;
 	std::vector<std::string> lines;
+    std::vector<Client>::iterator client_it = findClient(fd);
 	while (std::getline(iss, line, '\n'))
 	{
 		if (line.length() == 0 || line == "\n")
@@ -121,20 +119,23 @@ void Server::parse_cl(int fd)
 		std::vector<std::string>::iterator tokens_it = tokens.begin();
 		if (*tokens_it == "PASS")
 			pass(tokens, fd);
-		else if (*tokens_it == "JOIN")
-			join(tokens);
 		else if (*tokens_it == "NICK")
 			nick(tokens, fd);
 		else if (*tokens_it == "USER")
 			user(tokens, fd);
-		else if (*tokens_it == "PRIVMSG")
-			privmsg(tokens);
-		else if (*tokens_it == "KICK")
-			kick(tokens);
-		else if (*tokens_it == "QUIT")
-			quit(tokens, fd);
 		else if (*tokens_it == "CAP")
 			cap(tokens);
+        else if((*tokens_it == "JOIN" || *tokens_it == "PRIVMSG" || *tokens_it == "KICK" 
+        || *tokens_it == "QUIT") && !client_it->is_auth)
+            sendReply("PLEASE LOGIN FIRST\n", fd);
+        else if (*tokens_it == "JOIN" && client_it->is_auth)
+			join(tokens, fd);
+		else if (*tokens_it == "PRIVMSG" && client_it->is_auth)
+			privmsg(tokens);
+		else if (*tokens_it == "KICK" && client_it->is_auth)
+			kick(tokens);
+		else if (*tokens_it == "QUIT" && client_it->is_auth)
+			quit(tokens, fd);
 		//else if (*tokens_it == "NOTICE")
 		//	noticeCommand(tokens);
 		//else if (*tokens_it == "PART")
@@ -168,7 +169,30 @@ std::vector<Client>::iterator Server::findClientNick(std::string &str)
 	}
 	return clients.end();
 }
+std::vector<Client>::iterator Server::findClientInCh(std::vector<Channel>::iterator it, int fd)
+{
+    
+    std::vector<Client>::iterator client_it = it->clients_ch.begin();
+    while (client_it != it->clients_ch.end())
+    {
+        if (client_it->getFd() == fd)
+            return (client_it);
+        client_it++;
+    }
+    return (client_it);
+}
 
+std::vector<Channel>::iterator Server::findChannel(std::string str)
+{
+   std::vector<Channel>::iterator channel_it = channels.begin();
+   while (channel_it != channels.end())
+   {
+    if(channel_it->getName() == str)
+        return(channel_it);
+    channel_it++;
+   }
+    return (channel_it);
+}
 
 void Server::sendToClis(int fd)
 {
@@ -222,10 +246,7 @@ void Server::handle_name(std::vector<std::string> &tokens)
         (*token).append(" ");
         (*token).append((*(token + 1)));
         tokens.erase(token+1);
-
-    }
-    
-    
+    }  
 }
 
 Server::~Server() {}

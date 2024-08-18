@@ -18,6 +18,7 @@ class Client
         ~Client();
 
         bool is_auth;
+        bool is_registered;
         
         void setNick(std::string c_nick);
         void setUname(std::string c_uname);
