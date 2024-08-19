@@ -57,6 +57,7 @@ class Server
         void    parse_cl(int fd);
         bool    isAlNumStr(std::string str);
         void    handle_name(std::vector<std::string> &tokens);
+        void    eraseClient(int fd);
 
         void	pass(std::vector<std::string> &tokens, int fd);
 		void	nick(std::vector<std::string> &tokens, int fd);

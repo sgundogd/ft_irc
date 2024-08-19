@@ -53,6 +53,7 @@ int Server::Start()
                     c_id++;
                     Client client(clientfd, c_id);
                     clients.push_back(client);
+                    client.is_operator = false;
                     FD_SET(clientfd, &current);
                     if (maxfd < clientfd)
                         maxfd = clientfd;
@@ -205,6 +206,24 @@ void Server::sendToClis(int fd)
             send(i, buff, sizeof(buff), 0);
         }
     }
+}
+
+void Server::eraseClient(int fd)
+{
+    clients.erase(findClient(fd));
+    std::vector<Channel>::iterator channel_it = channels.begin();
+	std::vector<Client>::iterator client_it_ch;
+
+	while (channel_it != channels.end())
+	{
+		if(findClientInCh(channel_it,fd) != channel_it->clients_ch.end())
+		{
+            channel_it->clients_ch.erase(findClient(fd));
+		}
+		channel_it++;
+
+	}
+
 }
 
 void Server::sendToClisInCh(std::vector<Channel>::iterator it, std::string msg,int fd)

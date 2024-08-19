@@ -19,6 +19,7 @@ class Client
 
         bool is_auth;
         bool is_registered;
+        bool is_operator;
         
         void setNick(std::string c_nick);
         void setUname(std::string c_uname);

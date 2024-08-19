@@ -31,10 +31,20 @@ void Server::nick(std::vector<std::string> &tokens, int fd)
 			sendReply(ERR_ALREADYREGISTERED(*(tokens_it + 1)),fd);
 		else
 		{
+			std::vector<Channel>::iterator channel_it = channels.begin();
+			std::vector<Client>::iterator client_it_ch;
 
+			while (channel_it != channels.end())
+			{
+				if(findClientInCh(channel_it,fd) != channel_it->clients_ch.end())
+				{
+					client_it_ch = findClientInCh(channel_it,fd);
+					client_it_ch->setNick(*(tokens_it + 1));
+				}
+				channel_it++;
+
+			}
             client_it->setNick(*(tokens_it + 1));
-			//channel içindeki nicki de değiştir
-			//fd atıp channel içindeki clientı bul ve chanel içinde adını değiştir
 		}
 	}
 	else
@@ -60,6 +70,8 @@ void Server::quit(std::vector<std::string> &tokens, int fd)
 
 void	Server::user(std::vector<std::string> &tokens, int fd)
 {
+	//user commandına channel içinde de değiştrime olucak mı veya değiştirilebilir bir şey mi
+	//bir kere atanan bir şey mi 
 	std::vector<std::string>::iterator tokens_it = tokens.begin();
 	std::vector<Client>::iterator client_it = findClient(fd);
 
@@ -155,12 +167,14 @@ void Server::privmsg(std::vector<std::string> &tokens, int fd)
 			}
 			else if (findClientInCh(ch_it, fd) == ch_it->clients_ch.end())
 			{
-				sendReply(": You are not in channel");
+				sendReply(": You are not in channel", fd);
 			}
 			else
 				sendToClisInCh(ch_it, RPL_PRIV(client_it->getNick(), client_it->getUname(), ch_it->getName(), (*(tokens_it + 2))), fd);
 		}
-		else if (findClientNick(*(tokens_it + 1)) == clients.end() || findClientNick(*(tokens_it + 1))->is_registered == false || findClientNick(*(tokens_it + 1))->is_auth == false)
+		else if (findClientNick(*(tokens_it + 1)) == clients.end() 
+		|| findClientNick(*(tokens_it + 1))->is_registered == false 
+		|| findClientNick(*(tokens_it + 1))->is_auth == false)
 		{
 			sendReply(": User not found.", fd);
 		}

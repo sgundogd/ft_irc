@@ -14,7 +14,6 @@ class Channel
 
     public:
     std::vector<Client> clients_ch;
-    std::vector<Client> operators;
     Channel(std::string name, std::vector<Client>::iterator it);
     ~Channel();
     //client ekle
@@ -24,7 +23,6 @@ class Channel
     std::string getName() const;
     std::string getTopic() const;
     void addClient(std::vector<Client>::iterator it);
-    void addOperator(std::vector<Client>::iterator it);
     //std::string getTopic() const { return topic; }
     //void setTopic(const std::string& newTopic) { topic = newTopic; }
     //void addOperator(Client* client);
