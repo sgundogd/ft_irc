@@ -68,6 +68,7 @@ class Server
 		void	quit(std::vector<std::string> &tokens, int fd);
 		void	cap(std::vector<std::string> &tokens);
 		void	sendReply(std::string msg, int fd);
+		void	sendCl(std::string msg, int fd);
         ~Server();
 };
 

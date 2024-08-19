@@ -44,6 +44,7 @@ void Server::nick(std::vector<std::string> &tokens, int fd)
 				channel_it++;
 
 			}
+			sendCl(RPL_NICK(client_it->getNick(), client_it->getUname(), (*(tokens_it + 1))),fd);
             client_it->setNick(*(tokens_it + 1));
 		}
 	}
@@ -111,7 +112,8 @@ void Server::join(std::vector<std::string> &tokens, int fd)
 			{
 				ch_it->addClient(findClient(fd));
 				sendToClisInCh(ch_it, RPL_JOIN(client_it->getNick(), client_it->getUname(), *(tokens_it + 1)),fd);
-				/*if (channel_it->topic.length() == 0)
+				/*sendToClient(RPL_JOIN(client_it->nickname, client_it->username, *(tokens_it + 1)));
+				if (channel_it->topic.length() == 0)
 					sendReply(RPL_NOTOPIC(client_it->nickname, *(tokens_it + 1)));
 				else
 					sendReply(RPL_TOPIC(client_it->nickname, *(tokens_it + 1), channel_it->topic));
@@ -133,7 +135,7 @@ void Server::join(std::vector<std::string> &tokens, int fd)
 
 			}
 			else
-				sendReply("Already joined to this channel", fd);
+				sendCl("Already joined to this channel", fd);
 		}
 
 		else

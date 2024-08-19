@@ -67,10 +67,10 @@ int Server::Start()
                             std::cout << "Client " << findClient(fd)->getId() << " left the server" << std::endl;
                         else
                             std::cerr << "recv error\n";
-                        // buraya client kaldırma için ayrı fonksiyon eklenmiş
                         FD_CLR(fd, &current);
                         close(fd);
-                        clients.erase(findClient(fd));
+                        eraseClient(fd);
+                        //clients.erase(findClient(fd));
                     }
                     else if (ret == 1 && *buff == '\n')
                         continue;
@@ -79,7 +79,7 @@ int Server::Start()
                         buff[ret-1] = '\0';
                         parse_cl(fd);
                         // buraya cemal ekstra koşullar eklemiş bir tek /n var gibi vb onlara bak
-                        sendToClis(fd);
+                        //sendToClis(fd);
                     }
                     memset(buff, 0, sizeof(buff));
                 }
@@ -221,7 +221,6 @@ void Server::eraseClient(int fd)
             channel_it->clients_ch.erase(findClient(fd));
 		}
 		channel_it++;
-
 	}
 
 }
@@ -239,6 +238,19 @@ void Server::sendToClisInCh(std::vector<Channel>::iterator it, std::string msg,i
 
 void Server::sendReply(std::string msg, int fd)
 {
+    std::string reply = ":" + this->hostname + msg + "\r\n";
+    for (int i = 0; i <= maxfd; i++)
+    {
+        if (i == fd)
+        {
+
+            send(i, reply.c_str(), sizeof(reply), 0);
+        }
+    }
+}
+
+void Server::sendCl(std::string msg, int fd)
+{
     for (int i = 0; i <= maxfd; i++)
     {
         if (i == fd)
@@ -247,8 +259,6 @@ void Server::sendReply(std::string msg, int fd)
             send(i, msg.c_str(), sizeof(msg), 0);
         }
     }
-    //std::string reply = ":" + this->hostname + msg + "\r\n";
-    //send(fd, reply.c_str(), reply.size(), 0);
 }
 
 bool Server::isAlNumStr(std::string str)
