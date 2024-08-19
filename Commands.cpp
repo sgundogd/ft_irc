@@ -98,8 +98,7 @@ void Server::join(std::vector<std::string> &tokens, int fd)
 			if(findClientInCh(ch_it,fd) == ch_it->clients_ch.end())
 			{
 				ch_it->addClient(findClient(fd));
-				//sendToClientsInChannel(channel_it, RPL_JOIN(client_it->nickname, client_it->username, *(tokens_it + 1)));
-				sendReply(RPL_JOIN(client_it->getNick(), client_it->getUname(), *(tokens_it + 1)),fd);
+				sendToClisInCh(ch_it, RPL_JOIN(client_it->getNick(), client_it->getUname(), *(tokens_it + 1)),fd);
 				/*if (channel_it->topic.length() == 0)
 					sendReply(RPL_NOTOPIC(client_it->nickname, *(tokens_it + 1)));
 				else
@@ -137,4 +136,41 @@ void Server::join(std::vector<std::string> &tokens, int fd)
 	}
 	else
 		sendReply("Command form is: JOIN #channel",fd);
+}
+
+void Server::privmsg(std::vector<std::string> &tokens, int fd)
+{
+	std::vector<std::string>::iterator tokens_it = tokens.begin();
+	std::vector<Client>::iterator client_it = findClient(fd);
+	handle_name(tokens);
+	if(tokens.size() == 3 && (*(tokens_it + 2))[0] == ':' && (*(tokens_it + 2)).length() >= 2)
+	{
+		*(tokens_it + 2) = (*(tokens_it + 2)).substr(1, (*(tokens_it + 2)).length() - 1);
+		if ((*(tokens_it + 1))[0] == '#')
+		{
+			std::vector<Channel>::iterator ch_it = findChannel(*(tokens_it + 1));
+			if (ch_it == channels.end())
+			{
+				sendReply(": Channel cannot be found.", fd);
+			}
+			else if (findClientInCh(ch_it, fd) == ch_it->clients_ch.end())
+			{
+				sendReply(": You are not in channel");
+			}
+			else
+				sendToClisInCh(ch_it, RPL_PRIV(client_it->getNick(), client_it->getUname(), ch_it->getName(), (*(tokens_it + 2))), fd);
+		}
+		else if (findClientNick(*(tokens_it + 1)) == clients.end() || findClientNick(*(tokens_it + 1))->is_registered == false || findClientNick(*(tokens_it + 1))->is_auth == false)
+		{
+			sendReply(": User not found.", fd);
+		}
+		else
+		{
+			sendReply(RPL_PRIVUS(client_it->getNick(), client_it->getUname(), (*(tokens_it + 1)), (*(tokens_it + 2))), findClientNick(*(tokens_it + 1))->getFd());
+		}
+
+	}
+	else
+		sendReply("Command form is: PRIVMSG <recipient> :<message>",fd);
+
 }

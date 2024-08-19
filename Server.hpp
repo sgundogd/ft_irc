@@ -53,6 +53,7 @@ class Server
         std::vector<Client>::iterator findClientNick(std::string &str);
         std::vector<Channel>::iterator findChannel(std::string str);
         void    sendToClis(int fd);
+        void    sendToClisInCh(std::vector<Channel>::iterator it, std::string msg,int fd);
         void    parse_cl(int fd);
         bool    isAlNumStr(std::string str);
         void    handle_name(std::vector<std::string> &tokens);
@@ -60,7 +61,7 @@ class Server
         void	pass(std::vector<std::string> &tokens, int fd);
 		void	nick(std::vector<std::string> &tokens, int fd);
 		void	user(std::vector<std::string> &tokens, int fd);
-		void	privmsg(std::vector<std::string> &tokens);
+		void	privmsg(std::vector<std::string> &tokens, int fd);
 		void	join(std::vector<std::string> &tokens, int fd);
 		void	kick(std::vector<std::string> &tokens);
 		void	quit(std::vector<std::string> &tokens, int fd);

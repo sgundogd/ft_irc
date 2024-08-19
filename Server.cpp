@@ -131,7 +131,7 @@ void Server::parse_cl(int fd)
         else if (*tokens_it == "JOIN" && client_it->is_auth)
 			join(tokens, fd);
 		else if (*tokens_it == "PRIVMSG" && client_it->is_auth)
-			privmsg(tokens);
+			privmsg(tokens, fd);
 		else if (*tokens_it == "KICK" && client_it->is_auth)
 			kick(tokens);
 		else if (*tokens_it == "QUIT" && client_it->is_auth)
@@ -204,6 +204,17 @@ void Server::sendToClis(int fd)
             send(i, meta.c_str(), sizeof(meta), 0);
             send(i, buff, sizeof(buff), 0);
         }
+    }
+}
+
+void Server::sendToClisInCh(std::vector<Channel>::iterator it, std::string msg,int fd)
+{
+    std::vector<Client>::iterator client_it = it->clients_ch.begin();
+    while (client_it != it->clients_ch.end())
+    {
+        if (client_it->getFd() != fd)
+            send(client_it->getFd(), msg.c_str(), sizeof(msg), 0);
+        client_it++;
     }
 }
 
