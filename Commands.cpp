@@ -288,5 +288,35 @@ void Server::notice(std::vector<std::string> &tokens, int fd)
 }
 void Server::part(std::vector<std::string> &tokens, int fd)
 {
+	std::vector<std::string>::iterator tokens_it = tokens.begin();
+	std::vector<Client>::iterator client_it = findClient(fd);
+	std::vector<Channel>::iterator ch_it = findChannel(*(tokens_it + 1));
+	if((*(tokens_it + 1))[0] == '#' && (*(tokens_it + 1)).length() >= 2 && ((tokens.size() >= 3 && tokens[2][0] == ':') || tokens.size() == 2))
+	{
+		if (tokens.size() >= 3)
+            handle_name(tokens);
+		if(ch_it == channels.end())
+			sendReply(": Channel cannot be found.", fd);
+		else if(findClientInCh(ch_it, fd) == ch_it->clients_ch.end())
+			sendReply(": You are not in channel.", fd);
+		else
+		{
+			eraseClientFromCh(ch_it, fd);
+			if(tokens.size() >= 3)
+			{
+				sendToClisInCh(ch_it, PARTWITHREASON(client_it->getNick(), client_it->getUname(), tokens[1], tokens[2]), fd);
+				sendCl(PARTWITHREASON(client_it->getNick(), client_it->getUname(), tokens[1], tokens[2]), fd);
 
+			}
+			else
+			{
+				sendToClisInCh(ch_it , PART(client_it->getNick(), client_it->getUname(), tokens[1]));
+				sendCl(PART(client_it->getNick(), client_it->getUname(), tokens[1]), fd);
+			}
+
+		}
+
+	}
+	else
+		sendReply("Command form is: PART <channel> :[<message>]",fd);
 }
