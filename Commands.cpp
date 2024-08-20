@@ -205,7 +205,7 @@ void Server::kick(std::vector<std::string> &tokens, int fd)
 		else if(findClientInCh(ch_it, fd) == ch_it->clients_ch.end())
 			sendReply(": You are not in channel.", fd);
 		else if(findClientInCh(ch_it, fd)->is_operator == false)
-			sendReply("yetkinliklerin yetmiyor", fd);
+			sendReply(": You are not an operator!", fd);
 		else if(clientkick_it == clients.end())
 			sendReply(": User cannot found", fd);
 		else if(findClientInCh(ch_it, clientkick_it->getFd()) == ch_it->clients_ch.end())
@@ -219,4 +219,74 @@ void Server::kick(std::vector<std::string> &tokens, int fd)
 	}
 	else
 		sendReply("Command form is: KICK <channel> <client>",fd);
+}
+void Server::topic(std::vector<std::string> &tokens, int fd)
+{
+	std::vector<std::string>::iterator tokens_it = tokens.begin();
+	std::vector<Client>::iterator client_it = findClient(fd);
+	std::vector<Channel>::iterator ch_it = findChannel(*(tokens_it + 1));
+	handle_name(tokens);
+	if(tokens.size() == 3 && (*(tokens_it + 2))[0] == ':' && (*(tokens_it + 2)).length() >= 2
+	&& (*(tokens_it + 1))[0] == '#' && (*(tokens_it + 1)).length() >= 2)
+	{
+		*(tokens_it + 2) = (*(tokens_it + 2)).substr(1, (*(tokens_it + 2)).length() - 1);
+		if(ch_it == channels.end())
+			sendReply(": Channel cannot be found.", fd);
+		else if(findClientInCh(ch_it, fd) == ch_it->clients_ch.end())
+			sendReply(": You are not in channel.", fd);
+		else if(findClientInCh(ch_it, fd)->is_operator == false)
+			sendReply(": You are not an operator!", fd);
+		else
+			ch_it->setTopic(*(tokens_it + 2));
+			sendToClisInCh(ch_it, TOPICCHANGED(client_it->getNick(), client_it->getUname(), tokens[1], tokens[2]), fd);
+			sendCl(TOPICCHANGED(client_it->getNick(), client_it->getUname(), ch_it->getName(), ch_it->getTopic()), fd);
+			sendReply(RPL_TOPIC(client_it->getNick(), ch_it->getName(), ch_it->getTopic()), fd);
+	}
+	else
+		sendReply("Command form is: TOPIC <channel> <topic>",fd);
+
+}
+
+void Server::notice(std::vector<std::string> &tokens, int fd)
+{
+	//notice komutundan emin değilim sadece channela mı yapılıyor yoksa usera mı
+	//cemal sadece usera yollananı yapmış
+	std::vector<std::string>::iterator tokens_it = tokens.begin();
+	std::vector<Client>::iterator client_it = findClient(fd);
+	handle_name(tokens);
+	if(tokens.size() == 3 && (*(tokens_it + 2))[0] == ':' && (*(tokens_it + 2)).length() >= 2)
+	{
+		*(tokens_it + 2) = (*(tokens_it + 2)).substr(1, (*(tokens_it + 2)).length() - 1);
+		if ((*(tokens_it + 1))[0] == '#')
+		{
+			std::vector<Channel>::iterator ch_it = findChannel(*(tokens_it + 1));
+			if (ch_it == channels.end())
+			{
+				sendReply(": Channel cannot be found.", fd);
+			}
+			else if (findClientInCh(ch_it, fd) == ch_it->clients_ch.end())
+			{
+				sendReply(": You are not in channel.", fd);
+			}
+			else
+				sendToClisInCh(ch_it, NOTICE(client_it->getNick(), client_it->getUname(), *(tokens_it +1), *(tokens_it + 2)), fd); //burası düzenlenebilir
+		}
+		else if (findClientNick(*(tokens_it + 1)) == clients.end() 
+		|| findClientNick(*(tokens_it + 1))->is_registered == false 
+		|| findClientNick(*(tokens_it + 1))->is_auth == false)
+		{
+			sendReply(": User not found.", fd);
+		}
+		else
+		{
+			sendCl(NOTICE(client_it->getNick(), client_it->getUname(), *(tokens_it +1), *(tokens_it + 2)), findClientNick(*(tokens_it + 1))->getFd());
+		}
+
+	}
+	else
+		sendReply("Command form is: NOTICE <recipient> :<message>",fd);
+}
+void Server::part(std::vector<std::string> &tokens, int fd)
+{
+
 }

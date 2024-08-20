@@ -23,8 +23,8 @@ class Channel
     std::string getName() const;
     std::string getTopic() const;
     void addClient(std::vector<Client>::iterator it);
+    void setTopic(const std::string newTopic);
     //std::string getTopic() const { return topic; }
-    //void setTopic(const std::string& newTopic) { topic = newTopic; }
     //void addOperator(Client* client);
     //void removeOperator(Client* client);
     //bool isOperator(Client* client) const;

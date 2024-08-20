@@ -67,6 +67,9 @@ class Server
 		void	join(std::vector<std::string> &tokens, int fd);
 		void	kick(std::vector<std::string> &token, int fd);
 		void	quit(std::vector<std::string> &tokens, int fd);
+		void	topic(std::vector<std::string> &tokens, int fd);
+		void	notice(std::vector<std::string> &tokens, int fd);
+		void	part(std::vector<std::string> &tokens, int fd);
 		void	cap(std::vector<std::string> &tokens);
 		void	sendReply(std::string msg, int fd);
 		void	sendCl(std::string msg, int fd);

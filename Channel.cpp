@@ -29,4 +29,9 @@ std::string Channel::getName() const
     return (channel_name);
 }
 
+void Channel::setTopic(const std::string newTopic)
+{
+    this->topic = newTopic;
+}
+ 
 Channel::~Channel() {}

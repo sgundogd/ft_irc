@@ -127,7 +127,8 @@ void Server::parse_cl(int fd)
 		else if (*tokens_it == "CAP")
 			cap(tokens);
         else if((*tokens_it == "JOIN" || *tokens_it == "PRIVMSG" || *tokens_it == "KICK" 
-        || *tokens_it == "QUIT") && (!client_it->is_auth || !client_it->is_registered 
+        || *tokens_it == "QUIT" || *tokens_it == "TOPIC" || *tokens_it == "NOTICE" 
+        || *tokens_it == "PART") && (!client_it->is_auth || !client_it->is_registered 
         || client_it->getNick().length() == 0))
             sendCl(": use PASS-NICK-USER before sending any other commands", fd);
         else if (*tokens_it == "JOIN")
@@ -138,12 +139,12 @@ void Server::parse_cl(int fd)
 			kick(tokens, fd);
 		else if (*tokens_it == "QUIT")
 			quit(tokens, fd);
-		//else if (*tokens_it == "NOTICE")
-		//	noticeCommand(tokens);
-		//else if (*tokens_it == "PART")
-		//	partCommand(tokens);
-		//else if (*tokens_it == "TOPIC")
-		//	topicCommand(tokens);
+		else if (*tokens_it == "NOTICE")
+			notice(tokens, fd);
+		else if (*tokens_it == "PART")
+			part(tokens, fd);
+		else if (*tokens_it == "TOPIC")
+			topic(tokens, fd);
 		lines_it++;
 	}
 }
