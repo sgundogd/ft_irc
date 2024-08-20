@@ -9,7 +9,7 @@ void Server::pass(std::vector<std::string> &tokens, int fd)
 	{
 		if (client_it->is_auth == true)
 			return;
-		if(*(tokens_it + 1) != this->passwd)
+		else if(*(tokens_it + 1) != this->passwd)
 			sendReply(PASS_ERR(), fd);
 		else
 			client_it->is_auth = true;
@@ -169,7 +169,7 @@ void Server::privmsg(std::vector<std::string> &tokens, int fd)
 			}
 			else if (findClientInCh(ch_it, fd) == ch_it->clients_ch.end())
 			{
-				sendReply(": You are not in channel", fd);
+				sendReply(": You are not in channel.", fd);
 			}
 			else
 				sendToClisInCh(ch_it, RPL_PRIV(client_it->getNick(), client_it->getUname(), ch_it->getName(), (*(tokens_it + 2))), fd);
@@ -189,4 +189,34 @@ void Server::privmsg(std::vector<std::string> &tokens, int fd)
 	else
 		sendReply("Command form is: PRIVMSG <recipient> :<message>",fd);
 
+}
+
+void Server::kick(std::vector<std::string> &tokens, int fd)
+{
+
+	std::vector<std::string>::iterator tokens_it = tokens.begin();
+	std::vector<Client>::iterator client_it = findClient(fd);
+	std::vector<Channel>::iterator ch_it = findChannel(*(tokens_it + 1));
+	if(tokens.size() == 3 && (*(tokens_it + 1))[0] == '#' && (*(tokens_it + 1)).length() >= 2)
+	{
+		std::vector<Client>::iterator clientkick_it = findClientNick((*(tokens_it + 2)));
+		if(ch_it == channels.end())
+			sendReply(": Channel cannot be found.", fd);
+		else if(findClientInCh(ch_it, fd) == ch_it->clients_ch.end())
+			sendReply(": You are not in channel.", fd);
+		else if(findClientInCh(ch_it, fd)->is_operator == false)
+			sendReply("yetkinliklerin yetmiyor", fd);
+		else if(clientkick_it == clients.end())
+			sendReply(": User cannot found", fd);
+		else if(findClientInCh(ch_it, clientkick_it->getFd()) == ch_it->clients_ch.end())
+			sendReply(": User is not in channel", fd);
+		else
+		{
+			eraseClientFromCh(ch_it, clientkick_it->getFd());
+			sendCl(KICK(client_it->getNick(), client_it->getUname(), ch_it->getName(), clientkick_it->getNick()), fd);
+			sendToClisInCh(ch_it, KICK(client_it->getNick(), client_it->getUname(), ch_it->getName(), clientkick_it->getNick()), fd);
+		}
+	}
+	else
+		sendReply("Command form is: KICK <channel> <client>",fd);
 }

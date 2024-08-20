@@ -127,15 +127,16 @@ void Server::parse_cl(int fd)
 		else if (*tokens_it == "CAP")
 			cap(tokens);
         else if((*tokens_it == "JOIN" || *tokens_it == "PRIVMSG" || *tokens_it == "KICK" 
-        || *tokens_it == "QUIT") && !client_it->is_auth)
-            sendReply("PLEASE LOGIN FIRST\n", fd);
-        else if (*tokens_it == "JOIN" && client_it->is_auth)
+        || *tokens_it == "QUIT") && (!client_it->is_auth || !client_it->is_registered 
+        || client_it->getNick().length() == 0))
+            sendCl(": use PASS-NICK-USER before sending any other commands", fd);
+        else if (*tokens_it == "JOIN")
 			join(tokens, fd);
-		else if (*tokens_it == "PRIVMSG" && client_it->is_auth)
+		else if (*tokens_it == "PRIVMSG")
 			privmsg(tokens, fd);
-		else if (*tokens_it == "KICK" && client_it->is_auth)
-			kick(tokens);
-		else if (*tokens_it == "QUIT" && client_it->is_auth)
+		else if (*tokens_it == "KICK")
+			kick(tokens, fd);
+		else if (*tokens_it == "QUIT")
 			quit(tokens, fd);
 		//else if (*tokens_it == "NOTICE")
 		//	noticeCommand(tokens);
@@ -225,6 +226,19 @@ void Server::eraseClient(int fd)
 
 }
 
+void Server::eraseClientFromCh(std::vector<Channel>::iterator it, int fd)
+{
+	std::vector<Client>::iterator client_it_ch;
+
+	if (it != channels.end())
+	{
+		if(findClientInCh(it,fd) != it->clients_ch.end())
+		{
+            it->clients_ch.erase(findClient(fd));
+		}
+	}
+}
+
 void Server::sendToClisInCh(std::vector<Channel>::iterator it, std::string msg,int fd)
 {
     std::vector<Client>::iterator client_it = it->clients_ch.begin();
@@ -244,7 +258,7 @@ void Server::sendReply(std::string msg, int fd)
         if (i == fd)
         {
 
-            send(i, reply.c_str(), sizeof(reply), 0);
+            send(i, reply.c_str(), reply.size(), 0);
         }
     }
 }
